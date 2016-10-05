@@ -1,70 +1,61 @@
 import * as Immutable from 'immutable';
 
-export interface NamedProjectionDefinition {
-    from: Function,
-    to: Function
+export interface IProjectionStage<TFromType, TResultType> {
+    override(props: {
+        fromProperty: (from: TFromType) => any,
+        toProperty: (to: TResultType) => any,
+        use: (from: any) =>  any
+    } | {
+        forProperty: (from: TFromType) => any,
+        use: (from: any) =>  any
+    }
+
+    ): IProjectionStage<TFromType, TResultType>,
+
+    build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType>
 }
 
-export interface IProjection {
-    (from: any): any
-}
+class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromType, TResultType> {
+    private from: (o: any) => TFromType;
+    private to: (o: any) => TResultType;
 
-export class ProjectionContainer {
-    private _projections: Immutable.Map<number, Function> = Immutable.Map<number, Function>();
-
-    register(key: number, projection: Function) {
-        this._projections = this._projections.set(key, projection);
+    constructor(
+        from: (o: any) => TFromType,
+        to: (o: any) => TResultType
+    ) {
+        this.from = from;
+        this.to = to;
     }
 
-    project(key: number, from: any): any {
-        const f = this._projections.get(key);
-        return f(from);
+    override(props: {
+            fromProperty: (from: TFromType) => any,
+            toProperty: (to: TResultType) => any,
+            use: (from: any) =>  any,
+           [index : string] : any;
+        } | {
+            forProperty: (from: TFromType) => any,
+            use: (from: any) =>  any,
+           [index : string] : any;
+        }): IProjectionStage<TFromType, TResultType> {
+            props;
+            return this;
     }
 
-    using(definition: NamedProjectionDefinition) {
-        return new ProjectionContext(definition, this);
-    }
-}
+    build(): (from: TFromType) => TResultType {
+        return (from: TFromType) => {
+            if (from) {
 
-export class ProjectionContext {
-    private _definition: NamedProjectionDefinition;
-    private _container: ProjectionContainer;
-
-    constructor(definition: NamedProjectionDefinition, container: ProjectionContainer) {
-        this._definition = definition;
-        this._container = container;
-    }
-
-    private static hashCode(str: string) {
-        let hash = 0;
-        if (this.length === 0) return hash;
-        for (let i = 0; i < str.length; i++) {
-            hash = (((hash << 3) - hash) + str.charCodeAt(i)) | 0;
-        }
-        return hash;
-    };
-
-    private hashCode(): number {
-        const fromType = JSON.stringify(this._definition.from({}));
-        const toType = JSON.stringify(this._definition.to({}));
-        return ProjectionContext.hashCode(`${fromType}||${toType}`);
-    }
-
-    register(projection: IProjection): void {
-        this._container.register(this.hashCode(), projection);
-    }
-
-    private projectSingle(from: any): any {
-        var rawObject = this._container.project(this.hashCode(), from);
-        return this._definition.to(rawObject);
-    }
-
-    project(from: any): any {
-        if (Array.isArray(from)) {
-            return Immutable.List(from.map((x: any) => this.projectSingle(x)));
-        }
-        return this.projectSingle(from);
+            }
+            return this.to({});
+        };
     }
 }
 
-export var Projection = new ProjectionContainer();
+export default class ProjectionBuilder {
+    static defineProjection<TFromType, TResultType>(
+        from: (o: any) => TFromType,
+        to: (o: any) => TResultType
+    ): IProjectionStage<TFromType, TResultType> {
+        return new ProjectionStage<TFromType, TResultType>(from, to);
+    }
+}

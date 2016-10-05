@@ -8,3 +8,7 @@ export interface IServerResponseInnerRecord extends TypedRecord<IServerResponseI
 }
 export interface IClientViewModelInnerRecord extends TypedRecord<IClientViewModelInnerRecord>, IClientViewModelInner {
 }
+export declare const ServerResponseInnerRecord: (val?: IServerResponseInner | undefined) => IServerResponseInnerRecord;
+export declare const ClientViewModelInnerRecord: (val?: IClientViewModelInner | undefined) => IClientViewModelInnerRecord;
+export declare const ServerResponseRecord: (val?: IServerResponse | undefined) => IServerResponseRecord;
+export declare const ClientViewModelRecord: (val?: IClientViewModel | undefined) => IClientViewModelRecord;

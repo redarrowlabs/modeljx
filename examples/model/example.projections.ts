@@ -1,14 +1,3 @@
-import {makeTypedFactory} from "typed-immutable-record";
-
-import {Projection, NamedProjectionDefinition} from '../../src/modeljx';
-
-import {
-    IClientViewModelRecord,
-    IServerResponseRecord,
-    IServerResponseInnerRecord,
-    IClientViewModelInnerRecord
-} from './example.records';
-
 import {
     IClientViewModel,
     IServerResponse,
@@ -16,46 +5,25 @@ import {
     IClientViewModelInner
 } from "./example.models";
 
-export const innerServerToClient: NamedProjectionDefinition = {
-    from: makeTypedFactory<IServerResponseInner, IServerResponseInnerRecord>({
-        value: ''
-    }),
-    to: makeTypedFactory<IClientViewModelInner, IClientViewModelInnerRecord>({
-        value: ''
+import * as Factories from "./example.records";
+
+import ProjectionBuilder from "../../src/modeljx";
+
+import * as Immutable from 'immutable';
+
+const InnerResult_to_InnerModel = ProjectionBuilder
+    .defineProjection<IServerResponseInner, IClientViewModelInner>(
+        Factories.ServerResponseInnerRecord,
+        Factories.ClientViewModelInnerRecord
+    ).build();
+
+export const Response_to_ViewModel = ProjectionBuilder
+    .defineProjection<IServerResponse, IClientViewModel>(
+        Factories.ServerResponseRecord,
+        Factories.ClientViewModelRecord,
+    )
+    .override({
+        forProperty: (x: IServerResponse) => x.anotherInner,
+        use: InnerResult_to_InnerModel
     })
-};
-
-Projection
-    .using(innerServerToClient)
-    .register((from: IServerResponseInner) => {
-        return {
-            value: from.value
-        };
-    });
-
-export const serverToClient: NamedProjectionDefinition = {
-    from: makeTypedFactory<IServerResponse, IServerResponseRecord>({
-        value: '',
-        inner: {
-            value: ''
-        },
-    }),
-    to: makeTypedFactory<IClientViewModel, IClientViewModelRecord>({
-        value: '',
-        isDirty: false,
-        moreData: {
-            value: ''
-        }
-    })
-};
-
-Projection
-    .using(serverToClient)
-    .register((from: IServerResponseRecord) => {
-            return {
-                value: `${from.value}: Logic added.`,
-                isDirty: false,
-                moreData: Projection.using(innerServerToClient).project(from.inner)
-            };
-        }
-    );
+    .build();

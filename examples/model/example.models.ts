@@ -1,6 +1,7 @@
 export interface IServerResponse {
     value: string,
-    inner: IServerResponseInner
+    inner: IServerResponseInner,
+    anotherInner: IServerResponseInner
 }
 
 export interface IServerResponseInner {
@@ -10,7 +11,8 @@ export interface IServerResponseInner {
 export interface IClientViewModel {
     value: string,
     isDirty: boolean,
-    moreData: IClientViewModelInner
+    moreData: IClientViewModelInner,
+    anotherInner: IClientViewModelInner
 }
 
 export interface IClientViewModelInner {
