@@ -43,8 +43,8 @@ class ProjectionStage {
     // ~todo~ This needs to handle collections.
     build() {
         return (from) => {
-            let result = this.to({});
-            let source = this.from(from);
+            let result = this.to({}).toJS();
+            let source = this.from(from).toJS();
             for (const fromProperty in source) {
                 //noinspection JSUnfilteredForInLoop
                 const registeredProjections = this._projections.get(fromProperty);
@@ -54,7 +54,7 @@ class ProjectionStage {
                     registeredProjections.forEach((projection, toProperty) => {
                         if (result.hasOwnProperty(toProperty)) {
                             //noinspection JSUnfilteredForInLoop
-                            result[toProperty] = projection(fromProperty);
+                            result[toProperty] = projection(source[fromProperty]);
                             projectionFound = true;
                         }
                     });
@@ -68,7 +68,7 @@ class ProjectionStage {
                     }
                 }
             }
-            return result;
+            return this.to(result);
         };
     }
 }

@@ -33,7 +33,6 @@ describe('ProjectionContainer', () => {
             //             }
             //         },
             //     ]);
-            // debugger;
             // projected.should.not.be.null;
         });
         it('can project a single model', () => {

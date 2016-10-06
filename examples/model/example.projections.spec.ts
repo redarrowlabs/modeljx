@@ -36,7 +36,6 @@ describe('ProjectionContainer', () => {
             //             }
             //         },
             //     ]);
-            // debugger;
             // projected.should.not.be.null;
         });
 

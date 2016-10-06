@@ -78,10 +78,9 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     // ~todo~ This needs to handle collections.
     build(): (from: TFromType) => TResultType {
         return (from: TFromType) => {
-            let result: { [key: string]: any } = this.to({});
-            let source: { [key: string]: any } = this.from(from);
+            let result: { [key: string]: any } = (this.to({}) as any).toJS();
+            let source: { [key: string]: any } = (this.from(from) as any).toJS();
             for (const fromProperty in source) {
-
                 //noinspection JSUnfilteredForInLoop
                 const registeredProjections = this._projections.get(fromProperty);
                 let projectionFound: boolean = false;
@@ -91,7 +90,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                     registeredProjections.forEach((projection: Function, toProperty: string) => {
                         if (result.hasOwnProperty(toProperty)) {
                             //noinspection JSUnfilteredForInLoop
-                            result[toProperty] = projection(fromProperty);
+                            result[toProperty] = projection(source[fromProperty]);
                             projectionFound = true;
                         }
                     });
@@ -106,7 +105,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                     }
                 }
             }
-            return result as TResultType;
+            return this.to(result);
         };
     }
 }

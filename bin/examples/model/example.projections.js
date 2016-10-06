@@ -5,6 +5,11 @@ const InnerResult_to_InnerModel = ProjectionBuilder
 export const Response_to_ViewModel = ProjectionBuilder
     .defineProjection(Factories.ServerResponseRecord, Factories.ClientViewModelRecord)
     .override({
+    fromProperty: (x) => x.inner,
+    toProperty: (x) => x.moreData,
+    use: InnerResult_to_InnerModel
+})
+    .override({
     forProperty: (x) => x.anotherInner,
     use: InnerResult_to_InnerModel
 })

@@ -23,6 +23,11 @@ export const Response_to_ViewModel = ProjectionBuilder
         Factories.ClientViewModelRecord,
     )
     .override({
+        fromProperty: (x: IServerResponse) => x.inner,
+        toProperty: (x: IClientViewModel) => x.moreData,
+        use: InnerResult_to_InnerModel
+    })
+    .override({
         forProperty: (x: IServerResponse) => x.anotherInner,
         use: InnerResult_to_InnerModel
     })
