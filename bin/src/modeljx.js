@@ -6,7 +6,12 @@ class ProjectionStage {
         this.to = to;
     }
     overrideProperty(fromProperty, toProperty, use) {
-        this._projections = this._projections.set(`${fromProperty}|${toProperty}`, use);
+        let toMap = this._projections.get(fromProperty);
+        if (!toMap) {
+            toMap = Immutable.Map();
+        }
+        toMap = toMap.set(toProperty, use);
+        this._projections = this._projections.set(fromProperty, toMap);
     }
     override(props) {
         props;
@@ -35,16 +40,32 @@ class ProjectionStage {
             ? serialized.split('=>')[1].trim().split('.').splice(-1, 1)[0]
             : serialized.split('return')[1].split(';')[0].split('.')[1].trim();
     }
+    // ~todo~ This needs to handle collections.
     build() {
         return (from) => {
-            if (from) {
-            }
-            var result = this.to({});
-            // 1. loop through every property on the 'from' object.
-            for (let propertyName in from) {
-                // 2. attempt to lookup a specific projection for that property and execute it.
-                let hasProjection = false;
-                if (hasProjection) {
+            let result = this.to({});
+            let source = this.from(from);
+            for (const fromProperty in source) {
+                //noinspection JSUnfilteredForInLoop
+                const registeredProjections = this._projections.get(fromProperty);
+                let projectionFound = false;
+                // ### Attempt to find a specific projection definition:
+                if (registeredProjections) {
+                    registeredProjections.forEach((projection, toProperty) => {
+                        if (result.hasOwnProperty(toProperty)) {
+                            //noinspection JSUnfilteredForInLoop
+                            result[toProperty] = projection(fromProperty);
+                            projectionFound = true;
+                        }
+                    });
+                }
+                // ### Attempt to do a direct mapping:
+                if (!projectionFound) {
+                    //noinspection JSUnfilteredForInLoop
+                    if (result.hasOwnProperty(fromProperty)) {
+                        //noinspection JSUnfilteredForInLoop
+                        result[fromProperty] = source[fromProperty];
+                    }
                 }
             }
             return result;
