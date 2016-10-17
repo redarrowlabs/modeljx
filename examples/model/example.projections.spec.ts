@@ -7,36 +7,36 @@ chai.should();
 describe('ProjectionContainer', () => {
     describe('serverToClient', () => {
         it('handles collections', () => {
-            // const projected = Response_to_ViewModel([
-            //         {
-            //             value: 'Hello there',
-            //             inner: {
-            //                 value: 'something'
-            //             },
-            //             anotherInner: {
-            //                 value: 'inner something'
-            //             }
-            //         },
-            //         {
-            //             value: 'Something else in a collection',
-            //             inner: {
-            //                 value: 'inner value'
-            //             },
-            //             anotherInner: {
-            //                 value: 'inner something'
-            //             }
-            //         },
-            //         {
-            //             value: 'Another collection item',
-            //             inner: {
-            //                 value: 'in'
-            //             },
-            //             anotherInner: {
-            //                 value: 'inner something'
-            //             }
-            //         },
-            //     ]);
-            // projected.should.not.be.null;
+            const projected = Response_to_ViewModel([
+                    {
+                        value: 'Hello there',
+                        inner: {
+                            value: 'something'
+                        },
+                        anotherInner: {
+                            value: 'inner something'
+                        }
+                    },
+                    {
+                        value: 'Something else in a collection',
+                        inner: {
+                            value: 'inner value'
+                        },
+                        anotherInner: {
+                            value: 'inner something'
+                        }
+                    },
+                    {
+                        value: 'Another collection item',
+                        inner: {
+                            value: 'in'
+                        },
+                        anotherInner: {
+                            value: 'inner something'
+                        }
+                    },
+                ]);
+            projected.should.not.be.null;
         });
 
 
@@ -51,7 +51,6 @@ describe('ProjectionContainer', () => {
                         value: 'inner something'
                     }
                 });
-            debugger;
             projected.should.not.be.null;
         });
     });

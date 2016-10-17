@@ -75,9 +75,12 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
             : serialized.split('return')[1].split(';')[0].split('.')[1].trim();
     }
 
-    // ~todo~ This needs to handle collections.
-    build(): (from: TFromType) => TResultType {
-        return (from: TFromType) => {
+    build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
+        var isMappable = function (toCheck: any) {
+            return toCheck.constructor === Array || Immutable.Iterable.isIterable(toCheck);
+        };
+
+        var projectSingle = function (from: TFromType) {
             let result: { [key: string]: any } = (this.to({}) as any).toJS();
             let source: { [key: string]: any } = (this.from(from) as any).toJS();
             for (const fromProperty in source) {
@@ -85,12 +88,14 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                 const registeredProjections = this._projections.get(fromProperty);
                 let projectionFound: boolean = false;
 
+                var sourceProperty = source[fromProperty];
+
                 // ### Attempt to find a specific projection definition:
                 if (registeredProjections) {
                     registeredProjections.forEach((projection: Function, toProperty: string) => {
                         if (result.hasOwnProperty(toProperty)) {
                             //noinspection JSUnfilteredForInLoop
-                            result[toProperty] = projection(source[fromProperty]);
+                            result[toProperty] = projection(sourceProperty);
                             projectionFound = true;
                         }
                     });
@@ -101,11 +106,16 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                     //noinspection JSUnfilteredForInLoop
                     if (result.hasOwnProperty(fromProperty)) {
                         //noinspection JSUnfilteredForInLoop
-                        result[fromProperty] = source[fromProperty];
+                        result[fromProperty] = sourceProperty;
                     }
                 }
             }
             return this.to(result);
+        };
+        return (from: TFromType | TFromType[] | Immutable.List<TFromType>): TResultType | Immutable.List<TResultType> => {
+            return isMappable(from)
+                ? Immutable.List<TResultType>((from as any).map((x: any) => projectSingle.call(this, x)))
+                : projectSingle.call(this, from);
         };
     }
 }
