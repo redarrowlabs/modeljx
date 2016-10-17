@@ -1,5 +1,6 @@
-node_modules
 *debug.log.*
 *.story.js
 *.story.d.ts
 .idea/
+bin/
+node_modules/

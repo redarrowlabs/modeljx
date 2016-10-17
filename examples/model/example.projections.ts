@@ -7,7 +7,7 @@ import {
 
 import * as Factories from "./example.records";
 
-import ProjectionBuilder from "../../src/modeljx";
+import {ProjectionBuilder} from "../../src/modeljx";
 
 import * as Immutable from 'immutable';
 

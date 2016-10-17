@@ -110,7 +110,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     }
 }
 
-export default class ProjectionBuilder {
+export class ProjectionBuilder {
     static defineProjection<TFromType, TResultType>(
         from: (o: any) => TFromType,
         to: (o: any) => TResultType): IProjectionStage<TFromType, TResultType> {
