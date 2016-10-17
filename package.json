@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Patterns for client-side projections",
   "license": "MIT",
-  "main": "bin/index",
-  "typings": "bin/index",
+  "main": "bin/src/index",
+  "typings": "bin/src/index",
   "scripts": {
     "bootstrap": "npm install",
     "build": "tsc",
