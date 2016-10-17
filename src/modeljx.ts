@@ -4,21 +4,30 @@ export interface IProjectionStage<TFromType, TResultType> {
     override(props: {
         fromProperty: (from: TFromType) => any,
         toProperty: (to: TResultType) => any,
-        use: (from: any) =>  any
+        use: (from: any) => any,
+        when?: (from: any) => boolean
     } | {
         forProperty: (from: TFromType) => any,
-        use: (from: any) =>  any
+        use: (from: any) =>  any,
+        when?: (from: any) => boolean
     }): IProjectionStage<TFromType, TResultType>,
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType>
+}
+
+interface IConditionalFunction {
+    when?: (x: any) => boolean,
+    use: (from: any) =>  any
 }
 
 class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromType, TResultType> {
     private from: (o: any) => TFromType;
     private to: (o: any) => TResultType;
 
-    private _projections: Immutable.Map<string, Immutable.Map<string, Function>> =
-        Immutable.Map<string, Immutable.Map<string, Function>>();
+
+    private _projections: Immutable.Map<string, Immutable.Map<string, IConditionalFunction>> =
+        Immutable.Map<string, Immutable.Map<string, IConditionalFunction>>();
+
 
     constructor(
         from: (o: any) => TFromType,
@@ -30,12 +39,13 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     private overrideProperty(
         fromProperty: string,
         toProperty: string,
-        use: (from: any) => any) {
+        use: (from: any) => any,
+        when?: (from: any) => boolean) {
         let toMap = this._projections.get(fromProperty);
         if (!toMap) {
-            toMap = Immutable.Map<string, Function>();
+            toMap = Immutable.Map<string, IConditionalFunction>();
         }
-        toMap = toMap.set(toProperty, use);
+        toMap = toMap.set(toProperty, {when, use});
         this._projections = this._projections.set(fromProperty, toMap);
     }
 
@@ -43,26 +53,28 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         fromProperty: (from: TFromType) => any,
         toProperty: (to: TResultType) => any,
         use: (from: any) =>  any,
+        when?: (from: any) => boolean
         [index: string]: any;
     } | {
         forProperty: (from: TFromType) => any,
         use: (from: any) =>  any,
+        when?: (from: any) => boolean,
         [index: string]: any;
     }): IProjectionStage<TFromType, TResultType> {
         props;
-        let {fromProperty, toProperty, forProperty, use} = props;
+        let {fromProperty, toProperty, forProperty, use, when} = props;
         let from = '';
         let to = '';
         if (fromProperty) {
             from = ProjectionStage.extractPropertyName(fromProperty);
             to = ProjectionStage.extractPropertyName(toProperty);
-            this.overrideProperty(from, to, use);
+            this.overrideProperty(from, to, use, when);
         } else if (forProperty) {
             from = to = ProjectionStage.extractPropertyName(forProperty);
         } else {
             throw "unsupported projection type";
         }
-        this.overrideProperty(from, to, use);
+        this.overrideProperty(from, to, use, when);
         return this;
     }
 
@@ -92,10 +104,12 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
 
                 // ### Attempt to find a specific projection definition:
                 if (registeredProjections) {
-                    registeredProjections.forEach((projection: Function, toProperty: string) => {
+                    registeredProjections.forEach((projection: IConditionalFunction, toProperty: string) => {
                         if (result.hasOwnProperty(toProperty)) {
                             //noinspection JSUnfilteredForInLoop
-                            result[toProperty] = projection(sourceProperty);
+                            if (!projection.when || (projection.when && projection.when(source))) {
+                                result[toProperty] = projection.use(sourceProperty);
+                            }
                             projectionFound = true;
                         }
                     });

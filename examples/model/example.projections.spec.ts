@@ -1,6 +1,7 @@
 import chai from 'chai';
 
 import {Response_to_ViewModel} from "./example.projections";
+import {IClientViewModel} from "./example.models";
 
 chai.should();
 
@@ -45,13 +46,29 @@ describe('ProjectionContainer', () => {
                 {
                     value: 'Hello there',
                     inner: {
-                        value: 'something' // ~todo~ looks like this wasn't projecting to moreData
+                        value: 'something'
                     },
                     anotherInner: {
                         value: 'inner something'
                     }
                 });
             projected.should.not.be.null;
+        });
+
+
+        it('can project based on conditions', () => {
+            const projected = Response_to_ViewModel(
+                {
+                    value: 'Hello there',
+                    inner: {
+                        value: 'magic'
+                    },
+                    anotherInner: {
+                        value: 'magic'
+                    }
+                }) as IClientViewModel;
+            debugger;
+            projected.anotherInner.should.equal("did some magic"); // this is defined by a conditional expression in the projection.
         });
     });
 });

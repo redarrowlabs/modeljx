@@ -29,6 +29,12 @@ export const Response_to_ViewModel = ProjectionBuilder
     })
     .override({
         forProperty: (x: IServerResponse) => x.anotherInner,
-        use: InnerResult_to_InnerModel
+        use: InnerResult_to_InnerModel,
+        when: (x: IServerResponse) => x.anotherInner.value != "magic"
+    })
+    .override({
+        forProperty: (x: IServerResponse) => x.anotherInner,
+        use: (x: IServerResponse) => "did some magic",
+        when: (x: IServerResponse) => x.anotherInner.value == "magic"
     })
     .build();

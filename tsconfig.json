@@ -12,7 +12,7 @@
         //styles
         "noImplicitAny": true,
         "noUnusedLocals": false,
-        "noUnusedParameters": true,
+        "noUnusedParameters": false,
         "noImplicitReturns": false,
         "strictNullChecks": true
     },
