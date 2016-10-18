@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Patterns for client-side projections",
   "license": "MIT",
+  "repository": {
+    "url": ""
+  },
   "main": "bin/src/index",
   "typings": "bin/src/index",
   "scripts": {

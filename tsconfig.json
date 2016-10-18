@@ -1,24 +1,30 @@
 {
-    "compilerOptions": {
-        //modules
-        "module": "es2015",
-        "target": "es2015",
-        "moduleResolution": "node",
-        "baseUrl": "src",
-        "outDir": "bin",
-        "declaration": true,
-        "allowSyntheticDefaultImports": true,
-        "pretty": true,
-        //styles
-        "noImplicitAny": true,
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
-        "noImplicitReturns": false,
-        "strictNullChecks": true
-    },
-    "compileOnSave": true,
-    "exclude": [
-        "node_modules",
-        "bin"
+  "compilerOptions": {
+    //modules
+    "module": "commonjs",
+    "target": "es2015",
+    "moduleResolution": "node",
+    "baseUrl": "src",
+    "outDir": "bin",
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "pretty": true,
+    "sourceMap": true,
+    //styles
+    "noImplicitAny": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "strictNullChecks": true,
+    "lib": [
+      "es5",
+      "dom",
+      "es2015"
     ]
+  },
+  "compileOnSave": true,
+  "exclude": [
+    "node_modules",
+    "bin"
+  ]
 }

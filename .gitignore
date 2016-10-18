@@ -2,5 +2,4 @@
 *.story.js
 *.story.d.ts
 .idea/
-bin/
 node_modules/
