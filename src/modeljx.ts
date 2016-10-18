@@ -126,7 +126,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                     if (registeredProjections) {
                         registeredProjections.forEach((projections: Immutable.List<IConditionalFunction>, toProperty: string) => {
                             projections.forEach((projection: IConditionalFunction) => {
-                                if (!hasBeenProjected && result.hasOwnProperty(toProperty)) {
+                                if (result.hasOwnProperty(toProperty)) {
                                     if (!projection.when || (projection.when && projection.when(source))) {
                                         result[toProperty] = projection.use(sourceProperty);
                                         throw hasBeenProjected;
@@ -139,14 +139,14 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                     // ### Attempt pattern-based automapping:
                     this._mappings.forEach((mapping: (x: string) => string) => {
                         const mappedProperty = mapping(fromProperty);
-                        if (!hasBeenProjected && result.hasOwnProperty(mappedProperty)) {
+                        if (result.hasOwnProperty(mappedProperty)) {
                             result[mappedProperty] = sourceProperty;
                             throw hasBeenProjected;
                         }
                     });
 
                     // ### Attempt direct mapping:
-                    if (!hasBeenProjected && result.hasOwnProperty(fromProperty)) {
+                    if (result.hasOwnProperty(fromProperty)) {
                         result[fromProperty] = sourceProperty;
                     }
                 } catch (e) {
