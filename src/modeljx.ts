@@ -25,8 +25,8 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     private to: (o: any) => TResultType;
 
 
-    private _projections: Immutable.Map<string, Immutable.Map<string, IConditionalFunction>> =
-        Immutable.Map<string, Immutable.Map<string, IConditionalFunction>>();
+    private _projections: Immutable.Map<string, Immutable.Map<string, Immutable.List<IConditionalFunction>>> =
+        Immutable.Map<string, Immutable.Map<string, Immutable.List<IConditionalFunction>>>();
 
 
     constructor(
@@ -43,9 +43,14 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         when?: (from: any) => boolean) {
         let toMap = this._projections.get(fromProperty);
         if (!toMap) {
-            toMap = Immutable.Map<string, IConditionalFunction>();
+            toMap = Immutable.Map<string, Immutable.List<IConditionalFunction>>();
         }
-        toMap = toMap.set(toProperty, {when, use});
+        let projections = toMap.get(toProperty);
+        if (!projections) {
+            projections = Immutable.List<IConditionalFunction>();
+        }
+        projections = projections.push({when, use});
+        toMap = toMap.set(toProperty, projections);
         this._projections = this._projections.set(fromProperty, toMap);
     }
 
@@ -68,7 +73,6 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         if (fromProperty) {
             from = ProjectionStage.extractPropertyName(fromProperty);
             to = ProjectionStage.extractPropertyName(toProperty);
-            this.overrideProperty(from, to, use, when);
         } else if (forProperty) {
             from = to = ProjectionStage.extractPropertyName(forProperty);
         } else {
@@ -78,13 +82,21 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         return this;
     }
 
-    // ~todo~ Add error checking and make this more safe.
-    private static extractPropertyName(fromProperty: Function): string {
+    private static extractPropertyName(fromProperty: Function | string): string {
+        if (!fromProperty) {
+            return '';
+        }
+        if (typeof(fromProperty) === 'string') {
+            const parts = fromProperty.split('.');
+            return parts[parts.length - 1];
+        }
         let serialized: string = fromProperty.toString();
         let isLambda = serialized.indexOf('=>') > -1;
-        return isLambda
-            ? serialized.split('=>')[1].trim().split('.').splice(-1, 1)[0]
-            : serialized.split('return')[1].split(';')[0].split('.')[1].trim();
+
+        const rValue = isLambda
+            ? serialized.split('=>')[1].trim()
+            : serialized.split('return')[1].split(';')[0];
+        return ProjectionStage.extractPropertyName(rValue);
     }
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
@@ -96,7 +108,6 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
             let result: { [key: string]: any } = (this.to({}) as any).toJS();
             let source: { [key: string]: any } = (this.from(from) as any).toJS();
             for (const fromProperty in source) {
-                //noinspection JSUnfilteredForInLoop
                 const registeredProjections = this._projections.get(fromProperty);
                 let projectionFound: boolean = false;
 
@@ -104,24 +115,21 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
 
                 // ### Attempt to find a specific projection definition:
                 if (registeredProjections) {
-                    registeredProjections.forEach((projection: IConditionalFunction, toProperty: string) => {
-                        if (result.hasOwnProperty(toProperty)) {
-                            //noinspection JSUnfilteredForInLoop
-                            if (!projection.when || (projection.when && projection.when(source))) {
-                                result[toProperty] = projection.use(sourceProperty);
+                    registeredProjections.forEach((projections: Immutable.List<IConditionalFunction>, toProperty: string) => {
+                        projections.forEach((projection: IConditionalFunction) => {
+                            if (result.hasOwnProperty(toProperty)) {
+                                if (!projection.when || (projection.when && projection.when(source))) {
+                                    result[toProperty] = projection.use(sourceProperty);
+                                }
+                                projectionFound = true;
                             }
-                            projectionFound = true;
-                        }
+                        });
                     });
                 }
 
-                // ### Attempt to do a direct mapping:
-                if (!projectionFound) {
-                    //noinspection JSUnfilteredForInLoop
-                    if (result.hasOwnProperty(fromProperty)) {
-                        //noinspection JSUnfilteredForInLoop
-                        result[fromProperty] = sourceProperty;
-                    }
+                // ### Attempt pattern-based automapping:
+                if (!projectionFound && result.hasOwnProperty(fromProperty)) {
+                    result[fromProperty] = sourceProperty;
                 }
             }
             return this.to(result);

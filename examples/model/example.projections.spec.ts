@@ -40,35 +40,41 @@ describe('ProjectionContainer', () => {
             projected.should.not.be.null;
         });
 
-
         it('can project a single model', () => {
+            const expectedValue = 'Hello there';
+            const expectedInnerValue = 'something';
+            const expectedAnotherInnerValue = 'inner something';
+
             const projected = Response_to_ViewModel(
                 {
-                    value: 'Hello there',
+                    value: expectedValue,
                     inner: {
-                        value: 'something'
+                        value: expectedInnerValue
                     },
                     anotherInner: {
-                        value: 'inner something'
-                    }
-                });
-            projected.should.not.be.null;
-        });
-
-
-        it('can project based on conditions', () => {
-            const projected = Response_to_ViewModel(
-                {
-                    value: 'Hello there',
-                    inner: {
-                        value: 'magic'
-                    },
-                    anotherInner: {
-                        value: 'magic'
+                        value: expectedAnotherInnerValue
                     }
                 }) as IClientViewModel;
-            debugger;
-            projected.anotherInner.should.equal("did some magic"); // this is defined by a conditional expression in the projection.
+
+            projected.value.should.equal(expectedValue);
+            projected.moreData.value.should.equal(expectedInnerValue);
+            projected.anotherInner.value.should.equal(expectedAnotherInnerValue);
+        });
+
+        it('can project based on conditions', () => {
+            var magicValue = 'magic';
+            const projected = Response_to_ViewModel(
+                {
+                    value: 'Hello there',
+                    inner: {
+                        value: magicValue
+                    },
+                    anotherInner: {
+                        value: magicValue
+                    }
+                }) as IClientViewModel;
+            projected.anotherInner.should.not.equal(magicValue); // This has a conditional 'when' projection. Notice the 'not'.
+            projected.moreData.value.should.equal(magicValue);   // This is projected directly
         });
     });
 });
