@@ -2,7 +2,7 @@ export interface IServerResponse {
     value: string,
     inner: IServerResponseInner,
     anotherInner: IServerResponseInner,
-    DifferentCase: string
+    DifferentCase?: string
 }
 
 export interface IServerResponseInner {

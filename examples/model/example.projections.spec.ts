@@ -1,5 +1,4 @@
 import chai from 'chai';
-import {assert} from 'chai';
 
 import {Response_to_ViewModel} from "./example.projections";
 import {IClientViewModel} from "./example.models";
@@ -17,8 +16,7 @@ describe('ProjectionContainer', () => {
                         },
                         anotherInner: {
                             value: 'inner something'
-                        },
-                        DifferentCase: 'value'
+                        }
                     },
                     {
                         value: 'Something else in a collection',
@@ -27,8 +25,7 @@ describe('ProjectionContainer', () => {
                         },
                         anotherInner: {
                             value: 'inner something'
-                        },
-                        DifferentCase: 'value'
+                        }
                     },
                     {
                         value: 'Another collection item',
@@ -37,8 +34,7 @@ describe('ProjectionContainer', () => {
                         },
                         anotherInner: {
                             value: 'inner something'
-                        },
-                        DifferentCase: 'value'
+                        }
                     },
                 ]);
             projected.should.not.be.null;
