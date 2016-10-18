@@ -28,7 +28,8 @@ export const ServerResponseRecord = makeTypedFactory<IServerResponse, IServerRes
     },
     anotherInner: {
         value: ''
-    }
+    },
+    DifferentCase: ''
 });
 
 export const ClientViewModelRecord = makeTypedFactory<IClientViewModel, IClientViewModelRecord>({
@@ -39,5 +40,6 @@ export const ClientViewModelRecord = makeTypedFactory<IClientViewModel, IClientV
     },
     anotherInner: {
         value: ''
-    }
+    },
+    differentcase: ''
 });

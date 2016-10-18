@@ -22,6 +22,9 @@ export const Response_to_ViewModel = ProjectionBuilder
         Factories.ServerResponseRecord,
         Factories.ClientViewModelRecord,
     )
+    .withMapping(
+        (propertyName: string) => propertyName.toLowerCase()
+    )
     .override({
         fromProperty: (x: IServerResponse) => x.inner,
         toProperty: (x: IClientViewModel) => x.moreData,

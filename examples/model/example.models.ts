@@ -1,7 +1,8 @@
 export interface IServerResponse {
     value: string,
     inner: IServerResponseInner,
-    anotherInner: IServerResponseInner
+    anotherInner: IServerResponseInner,
+    DifferentCase: string
 }
 
 export interface IServerResponseInner {
@@ -12,7 +13,8 @@ export interface IClientViewModel {
     value: string,
     isDirty: boolean,
     moreData: IClientViewModelInner,
-    anotherInner: IClientViewModelInner
+    anotherInner: IClientViewModelInner,
+    differentcase: string
 }
 
 export interface IClientViewModelInner {

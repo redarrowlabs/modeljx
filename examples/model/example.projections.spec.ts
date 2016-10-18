@@ -1,4 +1,5 @@
 import chai from 'chai';
+import {assert} from 'chai';
 
 import {Response_to_ViewModel} from "./example.projections";
 import {IClientViewModel} from "./example.models";
@@ -16,7 +17,8 @@ describe('ProjectionContainer', () => {
                         },
                         anotherInner: {
                             value: 'inner something'
-                        }
+                        },
+                        DifferentCase: 'value'
                     },
                     {
                         value: 'Something else in a collection',
@@ -25,7 +27,8 @@ describe('ProjectionContainer', () => {
                         },
                         anotherInner: {
                             value: 'inner something'
-                        }
+                        },
+                        DifferentCase: 'value'
                     },
                     {
                         value: 'Another collection item',
@@ -34,7 +37,8 @@ describe('ProjectionContainer', () => {
                         },
                         anotherInner: {
                             value: 'inner something'
-                        }
+                        },
+                        DifferentCase: 'value'
                     },
                 ]);
             projected.should.not.be.null;
@@ -53,7 +57,8 @@ describe('ProjectionContainer', () => {
                     },
                     anotherInner: {
                         value: expectedAnotherInnerValue
-                    }
+                    },
+                    DifferentCase: 'value'
                 }) as IClientViewModel;
 
             projected.value.should.equal(expectedValue);
@@ -63,6 +68,7 @@ describe('ProjectionContainer', () => {
 
         it('can project based on conditions', () => {
             var magicValue = 'magic';
+
             const projected = Response_to_ViewModel(
                 {
                     value: 'Hello there',
@@ -71,10 +77,12 @@ describe('ProjectionContainer', () => {
                     },
                     anotherInner: {
                         value: magicValue
-                    }
+                    },
+                    DifferentCase: magicValue
                 }) as IClientViewModel;
             projected.anotherInner.should.not.equal(magicValue); // This has a conditional 'when' projection. Notice the 'not'.
             projected.moreData.value.should.equal(magicValue);   // This is projected directly
+            projected.differentcase.should.equal(magicValue);
         });
     });
 });

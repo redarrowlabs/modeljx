@@ -12,6 +12,8 @@ export interface IProjectionStage<TFromType, TResultType> {
         when?: (from: any) => boolean
     }): IProjectionStage<TFromType, TResultType>,
 
+    withMapping(mapping: (sourcePropertyName: string) => string): IProjectionStage<TFromType, TResultType>,
+
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType>
 }
 
@@ -24,10 +26,11 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     private from: (o: any) => TFromType;
     private to: (o: any) => TResultType;
 
-
     private _projections: Immutable.Map<string, Immutable.Map<string, Immutable.List<IConditionalFunction>>> =
         Immutable.Map<string, Immutable.Map<string, Immutable.List<IConditionalFunction>>>();
 
+    private _mappings: Immutable.List<((x: string) => string)> =
+        Immutable.List<((x: string) => string)>();
 
     constructor(
         from: (o: any) => TFromType,
@@ -36,22 +39,9 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         this.to = to;
     }
 
-    private overrideProperty(
-        fromProperty: string,
-        toProperty: string,
-        use: (from: any) => any,
-        when?: (from: any) => boolean) {
-        let toMap = this._projections.get(fromProperty);
-        if (!toMap) {
-            toMap = Immutable.Map<string, Immutable.List<IConditionalFunction>>();
-        }
-        let projections = toMap.get(toProperty);
-        if (!projections) {
-            projections = Immutable.List<IConditionalFunction>();
-        }
-        projections = projections.push({when, use});
-        toMap = toMap.set(toProperty, projections);
-        this._projections = this._projections.set(fromProperty, toMap);
+    withMapping(mapping: (sourcePropertyName: string) => string): IProjectionStage<TFromType, TResultType> {
+        this._mappings = this._mappings.push(mapping);
+        return this;
     }
 
     override(props: {
@@ -82,6 +72,24 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         return this;
     }
 
+    private overrideProperty(
+        fromProperty: string,
+        toProperty: string,
+        use: (from: any) => any,
+        when?: (from: any) => boolean) {
+        let toMap = this._projections.get(fromProperty);
+        if (!toMap) {
+            toMap = Immutable.Map<string, Immutable.List<IConditionalFunction>>();
+        }
+        let projections = toMap.get(toProperty);
+        if (!projections) {
+            projections = Immutable.List<IConditionalFunction>();
+        }
+        projections = projections.push({when, use});
+        toMap = toMap.set(toProperty, projections);
+        this._projections = this._projections.set(fromProperty, toMap);
+    }
+
     private static extractPropertyName(fromProperty: Function | string): string {
         if (!fromProperty) {
             return '';
@@ -109,7 +117,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
             let source: { [key: string]: any } = (this.from(from) as any).toJS();
             for (const fromProperty in source) {
                 const registeredProjections = this._projections.get(fromProperty);
-                let projectionFound: boolean = false;
+                let hasBeenProjected: boolean = false;
 
                 var sourceProperty = source[fromProperty];
 
@@ -117,18 +125,27 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                 if (registeredProjections) {
                     registeredProjections.forEach((projections: Immutable.List<IConditionalFunction>, toProperty: string) => {
                         projections.forEach((projection: IConditionalFunction) => {
-                            if (result.hasOwnProperty(toProperty)) {
+                            if (!hasBeenProjected && result.hasOwnProperty(toProperty)) {
                                 if (!projection.when || (projection.when && projection.when(source))) {
                                     result[toProperty] = projection.use(sourceProperty);
+                                    hasBeenProjected = true;
                                 }
-                                projectionFound = true;
                             }
                         });
                     });
                 }
 
                 // ### Attempt pattern-based automapping:
-                if (!projectionFound && result.hasOwnProperty(fromProperty)) {
+                this._mappings.forEach((mapping: (x: string) => string) => {
+                    const mappedProperty = mapping(fromProperty);
+                    debugger;
+                    if (!hasBeenProjected && result.hasOwnProperty(mappedProperty)) {
+                        result[mappedProperty] = sourceProperty;
+                    }
+                });
+
+                // ### Attempt direct mapping:
+                if (!hasBeenProjected && result.hasOwnProperty(fromProperty)) {
                     result[fromProperty] = sourceProperty;
                 }
             }
