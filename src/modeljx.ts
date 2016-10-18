@@ -118,7 +118,6 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
             let source: { [key: string]: any } = (this.from(from) as any).toJS();
             for (const fromProperty in source) {
                 const registeredProjections = this._projections.get(fromProperty);
-                let hasBeenProjected: boolean = false;
 
                 var sourceProperty = source[fromProperty];
 
