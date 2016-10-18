@@ -108,6 +108,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     }
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
+        const hasBeenProjected = 'short circuit Immutable forEach loops';
         var isMappable = function (toCheck: any) {
             return toCheck.constructor === Array || Immutable.Iterable.isIterable(toCheck);
         };
@@ -122,31 +123,37 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                 var sourceProperty = source[fromProperty];
 
                 // ### Attempt to find a specific projection definition:
-                if (registeredProjections) {
-                    registeredProjections.forEach((projections: Immutable.List<IConditionalFunction>, toProperty: string) => {
-                        projections.forEach((projection: IConditionalFunction) => {
-                            if (!hasBeenProjected && result.hasOwnProperty(toProperty)) {
-                                if (!projection.when || (projection.when && projection.when(source))) {
-                                    result[toProperty] = projection.use(sourceProperty);
-                                    hasBeenProjected = true;
+                try {
+                    if (registeredProjections) {
+                        registeredProjections.forEach((projections: Immutable.List<IConditionalFunction>, toProperty: string) => {
+                            projections.forEach((projection: IConditionalFunction) => {
+                                if (!hasBeenProjected && result.hasOwnProperty(toProperty)) {
+                                    if (!projection.when || (projection.when && projection.when(source))) {
+                                        result[toProperty] = projection.use(sourceProperty);
+                                        throw hasBeenProjected;
+                                    }
                                 }
-                            }
+                            });
                         });
-                    });
-                }
-
-                // ### Attempt pattern-based automapping:
-                this._mappings.forEach((mapping: (x: string) => string) => {
-                    const mappedProperty = mapping(fromProperty);
-                    debugger;
-                    if (!hasBeenProjected && result.hasOwnProperty(mappedProperty)) {
-                        result[mappedProperty] = sourceProperty;
                     }
-                });
 
-                // ### Attempt direct mapping:
-                if (!hasBeenProjected && result.hasOwnProperty(fromProperty)) {
-                    result[fromProperty] = sourceProperty;
+                    // ### Attempt pattern-based automapping:
+                    this._mappings.forEach((mapping: (x: string) => string) => {
+                        const mappedProperty = mapping(fromProperty);
+                        if (!hasBeenProjected && result.hasOwnProperty(mappedProperty)) {
+                            result[mappedProperty] = sourceProperty;
+                            throw hasBeenProjected;
+                        }
+                    });
+
+                    // ### Attempt direct mapping:
+                    if (!hasBeenProjected && result.hasOwnProperty(fromProperty)) {
+                        result[fromProperty] = sourceProperty;
+                    }
+                } catch (e) {
+                    if (e !== hasBeenProjected) {
+                        throw e;
+                    }
                 }
             }
             return this.to(result);
