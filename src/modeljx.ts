@@ -110,7 +110,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
         const hasBeenProjected = 'short circuit Immutable forEach loops';
         var isMappable = function (toCheck: any) {
-            return toCheck.constructor === Array || Immutable.Iterable.isIterable(toCheck);
+            return toCheck.constructor === Array || toCheck.toJS && toCheck.toJS().constructor === Array;
         };
 
         var projectSingle = function (from: TFromType) {

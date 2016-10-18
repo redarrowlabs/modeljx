@@ -1,4 +1,4 @@
-import chai from 'chai';
+import * as chai from 'chai';
 
 import {Response_to_ViewModel} from "./example.projections";
 import {IClientViewModel} from "./example.models";
