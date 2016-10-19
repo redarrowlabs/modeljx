@@ -1,84 +1,142 @@
 import * as chai from 'chai';
 
 import {Response_to_ViewModel} from "./example.projections";
-import {IClientViewModel} from "./example.models";
+import {IDomainObject} from "./example.client.models";
+
+import * as Immutable from 'immutable';
 
 chai.should();
 
-describe('ProjectionContainer', () => {
-    describe('serverToClient', () => {
-        it('handles collections', () => {
+//
+// The ability to test your data shape projections seperately from
+// the other logic in your app is one of the reasons to use a framework like this one:
+//
+describe('ProjectionBuilder', () => {
+    describe('build', () => {
+        it('handles collections w/out needing a seperate projection definition', () => {
             const projected = Response_to_ViewModel([
-                    {
-                        value: 'Hello there',
-                        inner: {
-                            value: 'something'
-                        },
-                        anotherInner: {
-                            value: 'inner something'
-                        }
+                {
+                    value: 'Hello there',
+                    inner: {
+                        value: 'something'
                     },
-                    {
-                        value: 'Something else in a collection',
-                        inner: {
-                            value: 'inner value'
-                        },
-                        anotherInner: {
-                            value: 'inner something'
-                        }
+                    anotherInner: {
+                        value: 'inner something'
+                    }
+                },
+                {
+                    value: 'Something else in a collection',
+                    inner: {
+                        value: 'inner value'
                     },
-                    {
-                        value: 'Another collection item',
-                        inner: {
-                            value: 'in'
-                        },
-                        anotherInner: {
-                            value: 'inner something'
-                        }
+                    anotherInner: {
+                        value: 'inner something'
+                    }
+                },
+                {
+                    value: 'Another collection item',
+                    inner: {
+                        value: 'in'
                     },
-                ]);
-            projected.should.not.be.null;
+                    anotherInner: {
+                        value: 'inner something'
+                    }
+                },
+            ]) as Immutable.List<IDomainObject>;
+
+            JSON.stringify(projected.toJS()).should.equal(JSON.stringify([
+                {
+                    value: "Hello there",
+                    isDirty: false,
+                    moreData: {
+                        value: "something"
+                    },
+                    anotherInner: {
+                        value: "inner something"
+                    },
+                    differentcase: ""
+                },
+                {
+                    value: "Something else in a collection",
+                    isDirty: false,
+                    moreData: {
+                        value: "inner value"
+                    },
+                    anotherInner: {
+                        value: "inner something"
+                    },
+                    differentcase: ""
+                },
+                {
+                    value: "Another collection item",
+                    isDirty: false,
+                    moreData: {
+                        value: "in"
+                    },
+                    anotherInner: {
+                        value: "inner something"
+                    },
+                    differentcase: ""
+                }
+            ]));
         });
 
-        it('can project a single model', () => {
-            const expectedValue = 'Hello there';
-            const expectedInnerValue = 'something';
-            const expectedAnotherInnerValue = 'inner something';
+        it('can also project a single model outside of a collection', () => {
 
             const projected = Response_to_ViewModel(
                 {
-                    value: expectedValue,
+                    value: "Hello there",
                     inner: {
-                        value: expectedInnerValue
+                        value: "something"
                     },
                     anotherInner: {
-                        value: expectedAnotherInnerValue
+                        value: "inner something"
                     },
                     DifferentCase: 'value'
-                }) as IClientViewModel;
+                }) as IDomainObject;
 
-            projected.value.should.equal(expectedValue);
-            projected.moreData.value.should.equal(expectedInnerValue);
-            projected.anotherInner.value.should.equal(expectedAnotherInnerValue);
+            JSON.stringify((projected as any).toJS()).should.equal(JSON.stringify({
+                    value: "Hello there",
+                    isDirty: false,
+                    moreData: {
+                        value: "something"
+                    },
+                    anotherInner: {
+                        value: "inner something"
+                    },
+                    // Note: this is projected from uppercased DifferentCase:
+                    differentcase: "value"
+                }
+            ));
         });
 
         it('can project based on conditions', () => {
-            var magicValue = 'magic';
-
             const projected = Response_to_ViewModel(
                 {
                     value: 'Hello there',
                     inner: {
-                        value: magicValue
+                        value: 'magic'
                     },
                     anotherInner: {
-                        value: magicValue
+                        value: 'magic'
                     },
-                    DifferentCase: magicValue
-                }) as IClientViewModel;
-            projected.anotherInner.should.not.equal(magicValue); // This has a conditional 'when' projection. Notice the 'not'.
-            projected.moreData.value.should.equal(magicValue);   // This is projected directly
-            projected.differentcase.should.equal(magicValue);
+                    DifferentCase: 'magic'
+                }) as IDomainObject;
+
+            JSON.stringify((projected as any).toJS()).should.equal(JSON.stringify({
+                    value: "Hello there",
+                    isDirty: false,
+                    moreData: {
+                        value: "magic"
+                    },
+                    // Notice that the projection 'did some magic' because the server
+                    // responded with a 'magic' value.
+                    // This can be used to perform more advanced transforms on server data that
+                    // you may or may not have control over.
+                    anotherInner: "did some magic",
+                    differentcase: "magic"
+                }
+            ));
         });
     });
 });
