@@ -1,5 +1,7 @@
 import * as Immutable from 'immutable';
 
+import * as _ from 'lodash';
+
 export interface IProjectionStage<TFromType, TResultType> {
     override(props: {
         fromProperty: (from: TFromType) => any,
@@ -109,13 +111,14 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
         const hasBeenProjected = 'short circuit Immutable forEach loops';
+
         var isMappable = function (toCheck: any) {
-            return toCheck.constructor === Array || toCheck.toJS && toCheck.toJS().constructor === Array;
+            return toCheck && (toCheck.constructor === Array || toCheck.toJS && toCheck.toJS().constructor === Array);
         };
 
         var projectSingle = function (from: TFromType) {
             let result: { [key: string]: any } = (this.to({}) as any).toJS();
-            let source: { [key: string]: any } = (this.from(from) as any).toJS();
+            let source: { [key: string]: any } = _.clone((this.from(from) as any).toJS());
             for (const fromProperty in source) {
                 const registeredProjections = this._projections.get(fromProperty);
 
@@ -128,7 +131,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                             projections.forEach((projection: IConditionalFunction) => {
                                 if (result.hasOwnProperty(toProperty)) {
                                     if (!projection.when || (projection.when && projection.when(source))) {
-                                        result[toProperty] = projection.use(sourceProperty);
+                                        result[toProperty] = sourceProperty == null? null: _.clone(projection.use(sourceProperty));
                                         throw hasBeenProjected;
                                     }
                                 }
