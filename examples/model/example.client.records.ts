@@ -1,27 +1,29 @@
 import {TypedRecord, makeTypedFactory} from "typed-immutable-record";
 
 import {
-    INestedDomainObject,
-    IDomainObject
+    NestedDomainObject,
+    DomainObject
 } from "./example.client.models";
 
-// Immutable records:
-export interface IDomainObjectRecord extends TypedRecord<IDomainObjectRecord>, IDomainObject {}
-export interface INestedDomainObjectRecord extends TypedRecord<INestedDomainObjectRecord>, INestedDomainObject {}
+export interface DomainObjectRecord extends TypedRecord<DomainObjectRecord>, DomainObject {}
+export interface NestedDomainObjectRecord extends TypedRecord<NestedDomainObjectRecord>, NestedDomainObject {}
 
-// Typed record factories:
-export const NestedDomainObject = makeTypedFactory<INestedDomainObject, INestedDomainObjectRecord>({
-    value: ''
-});
+export class ClientFactoryImpl {
+    nestedDomainObject = makeTypedFactory<NestedDomainObject, NestedDomainObjectRecord>({
+        value: ''
+    });
 
-export const DomainObject = makeTypedFactory<IDomainObject, IDomainObjectRecord>({
-    value: '',
-    isDirty: false,
-    moreData: {
-        value: ''
-    },
-    anotherInner: {
-        value: ''
-    },
-    differentcase: ''
-});
+    domainObject = makeTypedFactory<DomainObject, DomainObjectRecord>({
+        value: '',
+        isDirty: false,
+        moreData: {
+            value: ''
+        },
+        anotherInner: {
+            value: ''
+        },
+        differentcase: ''
+    });
+}
+
+export const ClientFactory = new ClientFactoryImpl();

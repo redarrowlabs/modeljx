@@ -1,11 +1,11 @@
-export interface IDomainObject {
+export interface DomainObject {
     value: string,
     isDirty: boolean,
-    moreData: INestedDomainObject,
-    anotherInner: INestedDomainObject,
+    moreData: NestedDomainObject,
+    anotherInner: NestedDomainObject,
     differentcase: string
 }
 
-export interface INestedDomainObject {
+export interface NestedDomainObject {
     value: string
 }

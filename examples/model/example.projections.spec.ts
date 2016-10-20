@@ -1,7 +1,7 @@
 import * as chai from 'chai';
 
 import {Response_to_ViewModel} from "./example.projections";
-import {IDomainObject} from "./example.client.models";
+import {DomainObject} from "./example.client.models";
 
 import * as Immutable from 'immutable';
 
@@ -42,7 +42,7 @@ describe('ProjectionBuilder', () => {
                         value: 'inner something'
                     }
                 },
-            ]) as Immutable.List<IDomainObject>;
+            ]) as Immutable.List<DomainObject>;
 
             JSON.stringify(projected.toJS()).should.equal(JSON.stringify([
                 {
@@ -93,7 +93,7 @@ describe('ProjectionBuilder', () => {
                         value: "inner something"
                     },
                     DifferentCase: 'value'
-                }) as IDomainObject;
+                }) as DomainObject;
 
             JSON.stringify((projected as any).toJS()).should.equal(JSON.stringify({
                     value: "Hello there",
@@ -121,7 +121,7 @@ describe('ProjectionBuilder', () => {
                         value: 'magic'
                     },
                     DifferentCase: 'magic'
-                }) as IDomainObject;
+                }) as DomainObject;
 
             JSON.stringify((projected as any).toJS()).should.equal(JSON.stringify({
                     value: "Hello there",

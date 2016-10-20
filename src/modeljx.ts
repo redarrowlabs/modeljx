@@ -2,7 +2,7 @@ import * as Immutable from 'immutable';
 
 import * as _ from 'lodash';
 
-export interface IProjectionStage<TFromType, TResultType> {
+export interface ProjectionStage<TFromType, TResultType> {
     override(props: {
         fromProperty: (from: TFromType) => any,
         toProperty: (to: TResultType) => any,
@@ -12,24 +12,24 @@ export interface IProjectionStage<TFromType, TResultType> {
         forProperty: (from: TFromType) => any,
         use: (from: any) =>  any,
         when?: (from: any) => boolean
-    }): IProjectionStage<TFromType, TResultType>,
+    }): ProjectionStage<TFromType, TResultType>,
 
-    withMapping(mapping: (sourcePropertyName: string) => string): IProjectionStage<TFromType, TResultType>,
+    withMapping(mapping: (sourcePropertyName: string) => string): ProjectionStage<TFromType, TResultType>,
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType>
 }
 
-interface IConditionalFunction {
+interface ConditionalFunction {
     when?: (x: any) => boolean,
     use: (from: any) =>  any
 }
 
-class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromType, TResultType> {
+class ProjectionStageImpl<TFromType, TResultType> implements ProjectionStage<TFromType, TResultType> {
     private from: (o: any) => TFromType;
     private to: (o: any) => TResultType;
 
-    private _projections: Immutable.Map<string, Immutable.Map<string, Immutable.List<IConditionalFunction>>> =
-        Immutable.Map<string, Immutable.Map<string, Immutable.List<IConditionalFunction>>>();
+    private _projections: Immutable.Map<string, Immutable.Map<string, Immutable.List<ConditionalFunction>>> =
+        Immutable.Map<string, Immutable.Map<string, Immutable.List<ConditionalFunction>>>();
 
     private _mappings: Immutable.List<((x: string) => string)> =
         Immutable.List<((x: string) => string)>();
@@ -41,7 +41,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         this.to = to;
     }
 
-    withMapping(mapping: (sourcePropertyName: string) => string): IProjectionStage<TFromType, TResultType> {
+    withMapping(mapping: (sourcePropertyName: string) => string): ProjectionStage<TFromType, TResultType> {
         this._mappings = this._mappings.push(mapping);
         return this;
     }
@@ -57,16 +57,16 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         use: (from: any) =>  any,
         when?: (from: any) => boolean,
         [index: string]: any;
-    }): IProjectionStage<TFromType, TResultType> {
+    }): ProjectionStage<TFromType, TResultType> {
         props;
         let {fromProperty, toProperty, forProperty, use, when} = props;
         let from = '';
         let to = '';
         if (fromProperty) {
-            from = ProjectionStage.extractPropertyName(fromProperty);
-            to = ProjectionStage.extractPropertyName(toProperty);
+            from = ProjectionStageImpl.extractPropertyName(fromProperty);
+            to = ProjectionStageImpl.extractPropertyName(toProperty);
         } else if (forProperty) {
-            from = to = ProjectionStage.extractPropertyName(forProperty);
+            from = to = ProjectionStageImpl.extractPropertyName(forProperty);
         } else {
             throw "unsupported projection type";
         }
@@ -81,11 +81,11 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         when?: (from: any) => boolean) {
         let toMap = this._projections.get(fromProperty);
         if (!toMap) {
-            toMap = Immutable.Map<string, Immutable.List<IConditionalFunction>>();
+            toMap = Immutable.Map<string, Immutable.List<ConditionalFunction>>();
         }
         let projections = toMap.get(toProperty);
         if (!projections) {
-            projections = Immutable.List<IConditionalFunction>();
+            projections = Immutable.List<ConditionalFunction>();
         }
         projections = projections.push({when, use});
         toMap = toMap.set(toProperty, projections);
@@ -106,7 +106,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
         const rValue = isLambda
             ? serialized.split('=>')[1].trim()
             : serialized.split('return')[1].split(';')[0];
-        return ProjectionStage.extractPropertyName(rValue);
+        return ProjectionStageImpl.extractPropertyName(rValue);
     }
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
@@ -127,8 +127,8 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
                 // ### Attempt to find a specific projection definition:
                 try {
                     if (registeredProjections) {
-                        registeredProjections.forEach((projections: Immutable.List<IConditionalFunction>, toProperty: string) => {
-                            projections.forEach((projection: IConditionalFunction) => {
+                        registeredProjections.forEach((projections: Immutable.List<ConditionalFunction>, toProperty: string) => {
+                            projections.forEach((projection: ConditionalFunction) => {
                                 if (result.hasOwnProperty(toProperty)) {
                                     if (!projection.when || (projection.when && projection.when(source))) {
                                         result[toProperty] = sourceProperty == null? null: _.clone(projection.use(sourceProperty));
@@ -171,7 +171,7 @@ class ProjectionStage<TFromType, TResultType> implements IProjectionStage<TFromT
 export class ProjectionBuilder {
     static defineProjection<TFromType, TResultType>(
         from: (o: any) => TFromType,
-        to: (o: any) => TResultType): IProjectionStage<TFromType, TResultType> {
-        return new ProjectionStage<TFromType, TResultType>(from, to);
+        to: (o: any) => TResultType): ProjectionStage<TFromType, TResultType> {
+        return new ProjectionStageImpl<TFromType, TResultType>(from, to);
     }
 }

@@ -1,3 +1,0 @@
---require ts-babel-node/register
---reporter tap
-examples/**/*.spec.ts

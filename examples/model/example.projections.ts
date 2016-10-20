@@ -1,8 +1,8 @@
 import * as ClientModel from './example.client.models';
 import * as ServerModel from './example.server.models';
 
-import * as ClientFactory from './example.client.records';
-import * as ServerFactory from './example.server.records';
+import {ClientFactory} from './example.client.records';
+import {ServerFactory} from './example.server.records';
 
 import {ProjectionBuilder} from "../../src/modeljx";
 
@@ -12,9 +12,9 @@ const MapToLowerCase = (propertyName: string) => propertyName.toLowerCase();
 
 // No need to export this, since it's only used by another projection:
 const InnerResult_to_InnerModel = ProjectionBuilder
-    .defineProjection<ServerModel.INestedDomainObject, ClientModel.INestedDomainObject>(
-        ServerFactory.NestedDomainObject,
-        ClientFactory.NestedDomainObject
+    .defineProjection<ServerModel.NestedDomainObject, ClientModel.NestedDomainObject>(
+        ServerFactory.nestedDomainObject,
+        ClientFactory.nestedDomainObject
     ).build();
 
 // ...exported, so the rest of the application can use the projection:
@@ -26,9 +26,9 @@ export const Response_to_ViewModel = ProjectionBuilder
     // Note that these can handle collections like arrays and Immutable.Lists
     // w/out any additional work (see tests in example directory).
     //
-    .defineProjection<ServerModel.IDomainObject, ClientModel.IDomainObject>(
-        ServerFactory.DomainObject,
-        ClientFactory.DomainObject,
+    .defineProjection<ServerModel.DomainObject, ClientModel.DomainObject>(
+        ServerFactory.domainObject,
+        ClientFactory.domainObject,
     )
     //
     // This will map all server objects properties that contain capital letters
@@ -43,8 +43,8 @@ export const Response_to_ViewModel = ProjectionBuilder
     //
     .override({
         // You may specify the name of a property with a lambda (if you like code completion), but a string will also work.
-        fromProperty: (x: ServerModel.IDomainObject) => x.inner,  // Map the 'inner' property on the server response.
-        toProperty: (x: ClientModel.IDomainObject) => x.moreData, // To the 'moreData' property on the client view model.
+        fromProperty: (x: ServerModel.DomainObject) => x.inner,  // Map the 'inner' property on the server response.
+        toProperty: (x: ClientModel.DomainObject) => x.moreData, // To the 'moreData' property on the client view model.
         use: InnerResult_to_InnerModel
     })
     //
@@ -52,16 +52,16 @@ export const Response_to_ViewModel = ProjectionBuilder
     // specified.
     //
     .override({
-        forProperty: (x: ServerModel.IDomainObject) => x.anotherInner,
+        forProperty: (x: ServerModel.DomainObject) => x.anotherInner,
         use: InnerResult_to_InnerModel,
         // You can also project based on conditions.
         // In this case, when the value isn't 'magic', we use the default projection...
-        when: (x: ServerModel.IDomainObject) => x.anotherInner.value != "magic"
+        when: (x: ServerModel.DomainObject) => x.anotherInner.value != "magic"
     })
     .override({
-        forProperty: (x: ServerModel.IDomainObject) => x.anotherInner,
+        forProperty: (x: ServerModel.DomainObject) => x.anotherInner,
         // ...But when it is 'magic', we project it differently.
-        use: (x: ServerModel.IDomainObject) => "did some magic",
-        when: (x: ServerModel.IDomainObject) => x.anotherInner.value == "magic"
+        use: (x: ServerModel.DomainObject) => "did some magic",
+        when: (x: ServerModel.DomainObject) => x.anotherInner.value == "magic"
     })
     .build();
