@@ -110,7 +110,7 @@ class ProjectionStageImpl<TFromType, TResultType> implements ProjectionStage<TFr
     }
 
     build(): (from: TFromType | TFromType[] | Immutable.List<TFromType>) => TResultType | Immutable.List<TResultType> {
-        const hasBeenProjected = 'short circuit Immutable forEach loops';
+        const HasBeenProjected = Symbol('short circuit Immutable forEach loops');
 
         var isMappable = function (toCheck: any) {
             return toCheck && (toCheck.constructor === Array || toCheck.toJS && toCheck.toJS().constructor === Array);
@@ -132,7 +132,7 @@ class ProjectionStageImpl<TFromType, TResultType> implements ProjectionStage<TFr
                                 if (result.hasOwnProperty(toProperty)) {
                                     if (!projection.when || (projection.when && projection.when(source))) {
                                         result[toProperty] = sourceProperty == null? null: _.clone(projection.use(sourceProperty));
-                                        throw hasBeenProjected;
+                                        throw HasBeenProjected;
                                     }
                                 }
                             });
@@ -144,7 +144,7 @@ class ProjectionStageImpl<TFromType, TResultType> implements ProjectionStage<TFr
                         const mappedProperty = mapping(fromProperty);
                         if (result.hasOwnProperty(mappedProperty)) {
                             result[mappedProperty] = sourceProperty;
-                            throw hasBeenProjected;
+                            throw HasBeenProjected;
                         }
                     });
 
@@ -153,7 +153,7 @@ class ProjectionStageImpl<TFromType, TResultType> implements ProjectionStage<TFr
                         result[fromProperty] = sourceProperty;
                     }
                 } catch (e) {
-                    if (e !== hasBeenProjected) {
+                    if (e !== HasBeenProjected) {
                         throw e;
                     }
                 }
